@@ -55,7 +55,14 @@ class _CalendarPageState extends State<CalendarPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Calendar Page', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Calendar Page',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       Container(
                         width: 140,
@@ -65,7 +72,13 @@ class _CalendarPageState extends State<CalendarPage> {
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: const Center(
-                          child: Text('Jun   Year', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            'Jun   Year',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -73,7 +86,10 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.notifications_none, color: Colors.white),
+                  icon: const Icon(
+                    Icons.notifications_none,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),
@@ -126,17 +142,31 @@ class _CalendarPageState extends State<CalendarPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Last period start: 2026-05-03', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+                const Text(
+                  'Last period start: 2026-05-03',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE29AC9),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('Select period start date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      'Select period start date',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -149,14 +179,35 @@ class _CalendarPageState extends State<CalendarPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Selected date details', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      const Text(
+                        'Selected date details',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
                       const SizedBox(height: 10),
-                      Text(_getSelectedDayTitle(), style: const TextStyle(color: Colors.white, fontSize: 14)),
+                      Text(
+                        _getSelectedDayTitle(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Text(_getSelectedDaySubtitle(), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                      Text(
+                        _getSelectedDaySubtitle(),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       TextField(
-                        controller: TextEditingController(text: _dateNotes[_selectedDay] ?? ''),
+                        controller: TextEditingController(
+                          text: _dateNotes[_selectedDay] ?? '',
+                        ),
                         onChanged: (value) {
                           setState(() {
                             _dateNotes[_selectedDay] = value;
@@ -166,8 +217,13 @@ class _CalendarPageState extends State<CalendarPage> {
                           filled: true,
                           fillColor: Colors.white,
                           hintText: 'Add note for this date',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                         ),
                         maxLines: 2,
                       ),
@@ -176,7 +232,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFB43772),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text('Save date note'),
                       ),
@@ -270,7 +328,9 @@ class _CalendarPageState extends State<CalendarPage> {
                     day.toString(),
                     style: TextStyle(
                       color: inMonth ? Colors.white : Colors.white38,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                   if (marker != null && !isSelected) ...[

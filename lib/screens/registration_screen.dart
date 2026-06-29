@@ -11,7 +11,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _dobController = TextEditingController();
 
   bool _isPasswordVisible = false;
@@ -42,21 +43,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             children: [
               const SizedBox(height: 20),
               Image.asset('assets/images/logo.png', height: 100),
-              const Text("Bloom", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text(
+                "Bloom",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 20),
-              const Text("Create Your Account", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+              const Text(
+                "Create Your Account",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 30),
 
               _buildTextField("Full Name", _nameController),
               _buildTextField("Email", _emailController),
-              _buildTextField("Password", _passwordController, isPassword: true),
-              _buildTextField("Confirm Password", _confirmPasswordController, isPassword: true),
-              
+              _buildTextField(
+                "Password",
+                _passwordController,
+                isPassword: true,
+              ),
+              _buildTextField(
+                "Confirm Password",
+                _confirmPasswordController,
+                isPassword: true,
+              ),
+
               // Date of Birth Field Khas
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Date of Birth", style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    "Date of Birth",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 5),
                   TextField(
                     controller: _dobController,
@@ -81,12 +99,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     final messenger = ScaffoldMessenger.of(context);
-                    if (_nameController.text.trim().isEmpty || _emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty || _confirmPasswordController.text.trim().isEmpty) {
-                      messenger.showSnackBar(const SnackBar(content: Text("Sila lengkapkan semua medan.")));
+                    if (_nameController.text.trim().isEmpty ||
+                        _emailController.text.trim().isEmpty ||
+                        _passwordController.text.trim().isEmpty ||
+                        _confirmPasswordController.text.trim().isEmpty) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text("Sila lengkapkan semua medan."),
+                        ),
+                      );
                       return;
                     }
-                    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
-                      messenger.showSnackBar(const SnackBar(content: Text("Password tidak sepadan!")));
+                    if (_passwordController.text.trim() !=
+                        _confirmPasswordController.text.trim()) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text("Password tidak sepadan!"),
+                        ),
+                      );
                       return;
                     }
                     Navigator.pushReplacementNamed(context, '/home');
@@ -95,7 +125,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFC48CB3),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: const Text("Register"),
                 ),
@@ -109,7 +141,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   const Text("Already have an account? "),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Text("Login", style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -120,7 +158,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isPassword = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isPassword = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -133,14 +175,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             filled: true,
             fillColor: Colors.white,
             border: const OutlineInputBorder(),
-            suffixIcon: isPassword ? IconButton(
-              icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
-              onPressed: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
-            ) : null,
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  )
+                : null,
           ),
         ),
         const SizedBox(height: 15),

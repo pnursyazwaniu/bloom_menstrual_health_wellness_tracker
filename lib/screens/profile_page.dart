@@ -13,7 +13,10 @@ class ProfilePage extends StatelessWidget {
             children: [
               Container(
                 height: 110,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: const BoxDecoration(
                   color: Color(0xFFB43772),
                   borderRadius: BorderRadius.only(
@@ -40,7 +43,10 @@ class ProfilePage extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(Icons.notifications_none, color: Colors.white),
+                      icon: const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -63,10 +69,7 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 6),
               const Text(
                 'sarah@email.com',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
               const SizedBox(height: 24),
               Padding(

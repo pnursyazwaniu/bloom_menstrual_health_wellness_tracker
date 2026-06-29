@@ -10,7 +10,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+
   bool _isPasswordVisible = false;
 
   @override
@@ -25,8 +25,14 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Image.asset('assets/images/bunga.png', height: 100),
               const SizedBox(height: 20),
-              const Text("Welcome to Bloom", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const Text("Your personal wellness companion", style: TextStyle(fontSize: 14, color: Colors.black54)),
+              const Text(
+                "Welcome to Bloom",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const Text(
+                "Your personal wellness companion",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
               const SizedBox(height: 40),
 
               TextField(
@@ -42,14 +48,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
               TextField(
                 controller: _passwordController,
-                obscureText: !_isPasswordVisible, 
+                obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: "Password",
                   filled: true,
                   fillColor: Colors.white,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
                     onPressed: () {
                       setState(() {
                         _isPasswordVisible = !_isPasswordVisible;
@@ -62,8 +72,12 @@ class _LoginScreenState extends State<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                  child: const Text("Forgot Password?", style: TextStyle(color: Colors.black87)),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/forgot-password'),
+                  child: const Text(
+                    "Forgot Password?",
+                    style: TextStyle(color: Colors.black87),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -74,8 +88,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     final messenger = ScaffoldMessenger.of(context);
-                    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
-                      messenger.showSnackBar(const SnackBar(content: Text("Sila lengkapkan email dan password.")));
+                    if (_emailController.text.trim().isEmpty ||
+                        _passwordController.text.trim().isEmpty) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text("Sila lengkapkan email dan password."),
+                        ),
+                      );
                     } else {
                       Navigator.pushReplacementNamed(context, '/home');
                     }
@@ -84,7 +103,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: Colors.orangeAccent,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text("Login", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Login",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
