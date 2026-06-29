@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-
-import '../firebase_options.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -19,14 +15,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController _dobController = TextEditingController();
 
   bool _isPasswordVisible = false;
-
-  Future<void> _ensureFirebaseInitialized() async {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
-  }
 
   // Fungsi Date Picker
   Future<void> _selectDate(BuildContext context) async {
@@ -91,32 +79,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () async {
+                  onPressed: () {
                     final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      await _ensureFirebaseInitialized();
-
-                      if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
-                        if (!mounted) return;
-                        messenger.showSnackBar(const SnackBar(content: Text("Password tidak sepadan!")));
-                        return;
-                      }
-
-                      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                        email: _emailController.text.trim(),
-                        password: _passwordController.text.trim(),
-                      );
-
-                      if (!mounted) return;
-                      messenger.showSnackBar(const SnackBar(content: Text("Berjaya Register!")));
-                      Navigator.pop(context);
-                    } on FirebaseAuthException catch (e) {
-                      if (!mounted) return;
-                      messenger.showSnackBar(SnackBar(content: Text("Error: ${e.code} - ${e.message ?? 'Unknown error'}")));
-                    } catch (e) {
-                      if (!mounted) return;
-                      messenger.showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+                    if (_nameController.text.trim().isEmpty || _emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty || _confirmPasswordController.text.trim().isEmpty) {
+                      messenger.showSnackBar(const SnackBar(content: Text("Sila lengkapkan semua medan.")));
+                      return;
                     }
+                    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
+                      messenger.showSnackBar(const SnackBar(content: Text("Password tidak sepadan!")));
+                      return;
+                    }
+                    Navigator.pushReplacementNamed(context, '/home');
                   },
 
                   style: ElevatedButton.styleFrom(
