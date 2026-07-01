@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/calendar_page.dart';
 
 class TodayPage extends StatefulWidget {
-  const TodayPage({Key? key}) : super(key: key);
+  const TodayPage({super.key});
 
   @override
   State<TodayPage> createState() => _TodayPageState();
@@ -157,7 +157,7 @@ class _TodayPageState extends State<TodayPage> {
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
+                              color: Colors.black.withValues(alpha: 0.08),
                               blurRadius: 18,
                               offset: const Offset(0, 10),
                             ),
@@ -222,30 +222,21 @@ class _TodayPageState extends State<TodayPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Flex(
-                        direction: isWide ? Axis.horizontal : Axis.vertical,
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(
-                            child: _InfoCard(
-                              title: 'Cycle Day',
-                              subtitle:
-                                  _periodOngoing && _periodStartDate != null
-                                  ? 'Day ${DateTime.now().difference(_periodStartDate!).inDays + 1}'
-                                  : 'Next cycle',
-                              color: const Color(0xFFF9B9D9),
-                            ),
+                          _InfoCard(
+                            title: 'Cycle Day',
+                            subtitle: _periodOngoing && _periodStartDate != null
+                                ? 'Day ${DateTime.now().difference(_periodStartDate!).inDays + 1}'
+                                : 'Next cycle',
+                            color: const Color(0xFFF9B9D9),
                           ),
-                          if (isWide)
-                            const SizedBox(width: 14)
-                          else
-                            const SizedBox(height: 14),
-                          Expanded(
-                            child: _InfoCard(
-                              title: 'Status',
-                              subtitle: _periodOngoing ? 'Ongoing' : 'Upcoming',
-                              color: const Color(0xFFF9B9D9),
-                            ),
+                          const SizedBox(height: 14),
+                          _InfoCard(
+                            title: 'Status',
+                            subtitle: _periodOngoing ? 'Ongoing' : 'Upcoming',
+                            color: const Color(0xFFF9B9D9),
                           ),
                         ],
                       ),
@@ -307,7 +298,7 @@ class _TodayPageState extends State<TodayPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Expanded(
+                            const Flexible(
                               child: Text(
                                 'Remind me daily to log symptoms.',
                                 style: TextStyle(
@@ -318,7 +309,7 @@ class _TodayPageState extends State<TodayPage> {
                             ),
                             Switch(
                               value: _notificationsEnabled,
-                              activeColor: const Color(0xFFB43772),
+                              activeThumbColor: const Color(0xFFB43772),
                               onChanged: (value) {
                                 setState(() {
                                   _notificationsEnabled = value;
@@ -431,7 +422,7 @@ class _TipLine extends StatelessWidget {
         children: [
           const Icon(Icons.check_circle, color: Color(0xFFB43772), size: 18),
           const SizedBox(width: 10),
-          Expanded(
+          Flexible(
             child: Text(
               text,
               style: const TextStyle(fontSize: 14, color: Color(0xFF4B3A4F)),
