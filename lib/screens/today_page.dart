@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/screens/calendar_page.dart';
 
 class TodayPage extends StatefulWidget {
   const TodayPage({Key? key}) : super(key: key);
@@ -15,14 +16,6 @@ class _TodayPageState extends State<TodayPage> {
   final Set<String> _selectedSymptoms = {};
   final int _periodLengthDays = 5;
   final int _nextPeriodDays = 9;
-
-  void _onPeriodStarts() {
-    setState(() {
-      _periodOngoing = true;
-      _periodStartDate = DateTime.now();
-      _selectedSymptoms.clear();
-    });
-  }
 
   int get _remainingPeriodDays {
     if (!_periodOngoing || _periodStartDate == null) return _nextPeriodDays;
@@ -45,172 +38,305 @@ class _TodayPageState extends State<TodayPage> {
 
   String get _statusValueText {
     if (_periodOngoing) {
-      return '${_remainingPeriodDays} days left in cycle';
+      return '$_remainingPeriodDays days left in cycle';
     }
     return '$_nextPeriodDays Days Left';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            color: const Color(0xFFF6D7EB),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _periodStatusText,
-                  style: const TextStyle(fontSize: 14, color: Colors.black54),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  _statusValueText,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6D7EB),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth > 720;
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 20,
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _periodDetailText,
-                  style: const TextStyle(fontSize: 14, color: Colors.black54),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: 170,
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: _periodOngoing ? null : _onPeriodStarts,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _periodOngoing
-                          ? Colors.grey
-                          : const Color(0xFF5BA6E6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      _periodOngoing ? 'Period Started' : 'Period Starts',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 16),
-                  Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: _InfoCard(
-                          title: 'Cycle Day',
-                          subtitle: _periodOngoing && _periodStartDate != null
-                              ? 'Day ${DateTime.now().difference(_periodStartDate!).inDays + 1}'
-                              : 'Next cycle',
-                          color: const Color(0xFFF9B9D9),
+                      isWide
+                          ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Hi, Sarah',
+                                        style: TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF5D3A52),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'Your cycle summary for today',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Color(0xFF7B5C7A),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Material(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () {},
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(12),
+                                      child: Icon(
+                                        Icons.tune,
+                                        color: Color(0xFFB43772),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  'Hi, Sarah',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF5D3A52),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Your cycle summary for today',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF7B5C7A),
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Material(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(16),
+                                      onTap: () {},
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Icon(
+                                          Icons.tune,
+                                          color: Color(0xFFB43772),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(22),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFB43772),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 18,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              _periodStatusText,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _statusValueText,
+                              style: const TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _periodDetailText,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+                            SizedBox(
+                              height: 52,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const CalendarPage(),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: const Color(0xFFB43772),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Select period start date',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _InfoCard(
-                          title: 'Status',
-                          subtitle: _periodOngoing ? 'Ongoing' : 'Upcoming',
-                          color: const Color(0xFFF9B9D9),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  _SectionCard(
-                    title: 'Symptoms Tracker',
-                    child: Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: _symptomOptions.map((symptom) {
-                        final selected = _selectedSymptoms.contains(symptom);
-                        return ChoiceChip(
-                          label: Text(symptom),
-                          selected: selected,
-                          onSelected: (_) {
-                            setState(() {
-                              if (selected) {
-                                _selectedSymptoms.remove(symptom);
-                              } else {
-                                _selectedSymptoms.add(symptom);
-                              }
-                            });
-                          },
-                          selectedColor: const Color(0xFFB43772),
-                          backgroundColor: Colors.white,
-                          labelStyle: TextStyle(
-                            color: selected
-                                ? Colors.white
-                                : const Color(0xFF5D3A52),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  _SectionCard(
-                    title: 'Self-care Tips',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        _TipLine(text: 'Drink warm water throughout the day.'),
-                        _TipLine(text: 'Get enough rest and nap if needed.'),
-                        _TipLine(text: 'Use a heating pad to ease cramps.'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  _SectionCard(
-                    title: 'Daily Notifications',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Remind me daily to log symptoms.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF4B3A4F),
+                      const SizedBox(height: 24),
+                      Flex(
+                        direction: isWide ? Axis.horizontal : Axis.vertical,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: _InfoCard(
+                              title: 'Cycle Day',
+                              subtitle:
+                                  _periodOngoing && _periodStartDate != null
+                                  ? 'Day ${DateTime.now().difference(_periodStartDate!).inDays + 1}'
+                                  : 'Next cycle',
+                              color: const Color(0xFFF9B9D9),
                             ),
                           ),
+                          if (isWide)
+                            const SizedBox(width: 14)
+                          else
+                            const SizedBox(height: 14),
+                          Expanded(
+                            child: _InfoCard(
+                              title: 'Status',
+                              subtitle: _periodOngoing ? 'Ongoing' : 'Upcoming',
+                              color: const Color(0xFFF9B9D9),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _SectionCard(
+                        title: 'Symptoms Tracker',
+                        child: Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _symptomOptions.map((symptom) {
+                            final selected = _selectedSymptoms.contains(
+                              symptom,
+                            );
+                            return ChoiceChip(
+                              label: Text(symptom),
+                              selected: selected,
+                              onSelected: (_) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedSymptoms.remove(symptom);
+                                  } else {
+                                    _selectedSymptoms.add(symptom);
+                                  }
+                                });
+                              },
+                              selectedColor: const Color(0xFFB43772),
+                              backgroundColor: Colors.white,
+                              labelStyle: TextStyle(
+                                color: selected
+                                    ? Colors.white
+                                    : const Color(0xFF5D3A52),
+                                fontWeight: selected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            );
+                          }).toList(),
                         ),
-                        Switch(
-                          value: _notificationsEnabled,
-                          activeColor: const Color(0xFFB43772),
-                          onChanged: (value) {
-                            setState(() {
-                              _notificationsEnabled = value;
-                            });
-                          },
+                      ),
+                      const SizedBox(height: 20),
+                      _SectionCard(
+                        title: 'Self-care Tips',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            _TipLine(
+                              text: 'Drink warm water throughout the day.',
+                            ),
+                            _TipLine(
+                              text: 'Get enough rest and nap if needed.',
+                            ),
+                            _TipLine(text: 'Use a heating pad to ease cramps.'),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 20),
+                      _SectionCard(
+                        title: 'Daily Notifications',
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Remind me daily to log symptoms.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF4B3A4F),
+                                ),
+                              ),
+                            ),
+                            Switch(
+                              value: _notificationsEnabled,
+                              activeColor: const Color(0xFFB43772),
+                              onChanged: (value) {
+                                setState(() {
+                                  _notificationsEnabled = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

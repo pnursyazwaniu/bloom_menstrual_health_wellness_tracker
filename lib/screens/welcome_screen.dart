@@ -6,94 +6,150 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6C7DF),
+      backgroundColor: const Color(0xFFF9E5F0),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFFFF0F8), Color(0xFFF6D7EB)],
+            ),
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Image.asset('assets/images/logo.png', height: 90),
-              ),
-              const SizedBox(height: 10),
-
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Illustration
-                    Image.asset('assets/images/bunga.png', height: 220),
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      'Bloom',
-                      style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Menstrual Health & Wellness Tracker',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Track your cycle, symptoms & wellness with ease',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    Image.asset('assets/images/logo.png', height: 72),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.info_outline,
+                        color: Color(0xFFB43772),
+                      ),
                     ),
                   ],
                 ),
               ),
-
-              // Buttons
-              Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/register'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFCC86AB),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/images/bunga.png', height: 220),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Bloom',
+                      style: TextStyle(
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF5D3A52),
                       ),
-                      child: const Text('Get Started', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/login'),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.black12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        'Menstrual Health & Wellness Tracker',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF5D3A52),
+                          height: 1.4,
+                        ),
                       ),
-                      child: const Text('Login', style: TextStyle(fontSize: 16, color: Colors.black87)),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('Privacy Policy', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black87)),
+                    const SizedBox(height: 8),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 28),
+                      child: Text(
+                        'Track your cycle, symptoms & self-care with a gentle space for your wellness journey.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF7B5C7A),
+                          height: 1.5,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('Terms of Service', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black87)),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/register'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFB43772),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                        ),
+                        child: const Text(
+                          'Get Started',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/login'),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: const BorderSide(color: Color(0xFFB43772)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                        ),
+                        child: const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFFB43772),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Privacy Policy',
+                            style: TextStyle(color: Color(0xFF7B5C7A)),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Terms of Service',
+                            style: TextStyle(color: Color(0xFF7B5C7A)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
