@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -115,10 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         height: 52,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             final messenger = ScaffoldMessenger.of(context);
-                            if (_emailController.text.trim().isEmpty ||
-                                _passwordController.text.trim().isEmpty) {
+                            final email = _emailController.text.trim();
+                            final password = _passwordController.text.trim();
+
+                            if (email.isEmpty || password.isEmpty) {
                               messenger.showSnackBar(
                                 const SnackBar(
                                   content: Text(
@@ -126,8 +130,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               );
-                            } else {
+                              return;
+                            }
+
+                            try {
+                              await AuthService().signIn(email, password);
                               Navigator.pushReplacementNamed(context, '/home');
+                            } on FirebaseAuthException catch (e) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(e.message ?? 'Login gagal.'),
+                                ),
+                              );
+                            } catch (_) {
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Login gagal. Sila cuba lagi.'),
+                                ),
+                              );
                             }
                           },
                           style: ElevatedButton.styleFrom(

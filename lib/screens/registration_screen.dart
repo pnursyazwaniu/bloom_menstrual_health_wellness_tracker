@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/firestore_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -137,12 +140,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           final messenger = ScaffoldMessenger.of(context);
-                          if (_nameController.text.trim().isEmpty ||
-                              _emailController.text.trim().isEmpty ||
-                              _passwordController.text.trim().isEmpty ||
-                              _confirmPasswordController.text.trim().isEmpty) {
+                          final name = _nameController.text.trim();
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text.trim();
+                          final confirmPassword =
+                              _confirmPasswordController.text.trim();
+                          final dob = _dobController.text.trim();
+
+                          if (name.isEmpty ||
+                              email.isEmpty ||
+                              password.isEmpty ||
+                              confirmPassword.isEmpty ||
+                              dob.isEmpty) {
                             messenger.showSnackBar(
                               const SnackBar(
                                 content: Text('Sila lengkapkan semua medan.'),
@@ -150,8 +161,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             );
                             return;
                           }
-                          if (_passwordController.text.trim() !=
-                              _confirmPasswordController.text.trim()) {
+                          if (password != confirmPassword) {
                             messenger.showSnackBar(
                               const SnackBar(
                                 content: Text('Password tidak sepadan!'),
@@ -159,7 +169,34 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             );
                             return;
                           }
-                          Navigator.pushReplacementNamed(context, '/home');
+
+                          try {
+                            final credential =
+                                await AuthService().register(email, password);
+                            final uid = credential.user?.uid;
+                            if (uid != null) {
+                              await FirestoreService().createUserProfile(
+                                uid: uid,
+                                name: name,
+                                email: email,
+                                dob: dob,
+                              );
+                            }
+                            Navigator.pushReplacementNamed(context, '/home');
+                          } on FirebaseAuthException catch (e) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text(e.message ?? 'Pendaftaran gagal.'),
+                              ),
+                            );
+                          } catch (_) {
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Pendaftaran gagal. Sila cuba lagi.'),
+                              ),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFB43772),
