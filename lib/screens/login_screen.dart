@@ -100,18 +100,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/forgot-password'),
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(color: Color(0xFF7B5C7A)),
-                          ),
-                        ),
-                      ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
@@ -137,9 +125,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               await AuthService().signIn(email, password);
                               Navigator.pushReplacementNamed(context, '/home');
                             } on FirebaseAuthException catch (e) {
+                              final message =
+                                  e.code == 'user-not-found' ||
+                                          e.code == 'wrong-password'
+                                      ? 'Invalid credentials. Sila cuba lagi.'
+                                      : e.message ?? 'Login gagal.';
                               messenger.showSnackBar(
                                 SnackBar(
-                                  content: Text(e.message ?? 'Login gagal.'),
+                                  content: Text(message),
                                 ),
                               );
                             } catch (_) {

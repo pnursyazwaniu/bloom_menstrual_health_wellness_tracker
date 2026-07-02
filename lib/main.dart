@@ -1,7 +1,8 @@
-import 'package:bloom_menstrual_health_wellness_tracker/screens/forgot_password_screen.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/homepage.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/login_screen.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/screens/privacy_policy_screen.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/registration_screen.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/screens/terms_of_service_screen.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -33,7 +34,8 @@ class MyApp extends StatelessWidget {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegistrationScreen(),
-        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/privacy-policy': (context) => const PrivacyPolicyScreen(),
+        '/terms-of-service': (context) => const TermsOfServiceScreen(),
         '/home': (context) => const HomePage(),
       },
     );

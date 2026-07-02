@@ -182,12 +182,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 dob: dob,
                               );
                             }
-                            Navigator.pushReplacementNamed(context, '/home');
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Pendaftaran berjaya. Sila log masuk.',
+                                ),
+                              ),
+                            );
+                            Navigator.pushReplacementNamed(context, '/login');
                           } on FirebaseAuthException catch (e) {
+                            final message = e.code == 'email-already-in-use'
+                                ? 'Email telah digunakan. Sila log masuk.'
+                                : e.message ?? 'Pendaftaran gagal.';
                             messenger.showSnackBar(
                               SnackBar(
-                                content:
-                                    Text(e.message ?? 'Pendaftaran gagal.'),
+                                content: Text(message),
                               ),
                             );
                           } catch (_) {
@@ -199,7 +208,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFB43772),
+                          backgroundColor: const Color(0xFFF1A9C4),
+                          foregroundColor: const Color(0xFF2B1B2B),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),
@@ -222,7 +232,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           style: TextStyle(color: Color(0xFF7B5C7A)),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () =>
+                              Navigator.pushReplacementNamed(context, '/login'),
                           child: const Text(
                             'Login',
                             style: TextStyle(
