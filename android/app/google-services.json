@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "806283459199",
+    "project_id": "bloom-d8864",
+    "storage_bucket": "bloom-d8864.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:806283459199:android:4773fafbfc984547e55d4a",
+        "android_client_info": {
+          "package_name": "com.example.bloom_menstrual_health_wellness_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWIJNiIMIOTf8vZ2FXBtFg6sUw7tzhjOY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
