@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/screens/edit_profile_screen.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -182,21 +184,45 @@ class ProfilePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    const Text(
-                      'Edit Profile',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditProfileScreen(),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFB43772),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Text('Edit Profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Log out',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          await AuthService().signOut();
+                          if (!context.mounted) return;
+                          Navigator.pushReplacementNamed(context, '/login');
+                        },
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: const BorderSide(color: Color(0xFFB43772)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Text('Log out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFB43772))),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
