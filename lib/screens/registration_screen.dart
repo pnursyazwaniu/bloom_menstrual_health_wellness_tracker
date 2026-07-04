@@ -185,11 +185,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             messenger.showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  'Pendaftaran berjaya. Sila log masuk.',
+                                  'Pendaftaran berjaya. Anda telah log masuk.',
                                 ),
                               ),
                             );
-                            Navigator.pushReplacementNamed(context, '/login');
+                            Navigator.pushReplacementNamed(context, '/home');
                           } on FirebaseAuthException catch (e) {
                             final message = e.code == 'email-already-in-use'
                                 ? 'Email telah digunakan. Sila log masuk.'

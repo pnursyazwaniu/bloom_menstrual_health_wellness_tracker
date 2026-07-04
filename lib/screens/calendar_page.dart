@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/firestore_service.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -8,31 +10,75 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  int _selectedDay = 24;
+  int _selectedDay = DateTime.now().day;
   int? _savedPeriodStartDay;
   String? _feedbackMessage;
   DateTime? _selectedPeriodStart;
   final TextEditingController _noteController = TextEditingController();
   final Map<int, String> _dateNotes = {};
-
-  final Map<int, String> _dateEvents = {
-    1: 'period',
-    2: 'period',
-    3: 'period',
-    4: 'period',
-    5: 'period',
-    10: 'fertile',
-    11: 'fertile',
-    12: 'fertile',
-    13: 'fertile',
-    14: 'fertile',
-    24: 'ovulation',
-  };
+  final Map<int, String> _dateEvents = {};
+  int _periodLength = 5;
+  bool _loading = true;
 
   @override
   void dispose() {
     _noteController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCalendarData();
+  }
+
+  Future<void> _loadCalendarData() async {
+    final uid = AuthService().currentUser?.uid;
+    if (uid == null) {
+      setState(() {
+        _loading = false;
+      });
+      return;
+    }
+
+    try {
+      final data = await FirestoreService().getUserCalendarData(uid);
+      if (data != null) {
+        if (data['selectedPeriodStart'] != null) {
+          _selectedPeriodStart = DateTime.tryParse(data['selectedPeriodStart']);
+        }
+        _periodLength = (data['periodLength'] as int?) ?? 5;
+
+        final dateEvents = data['dateEvents'] as Map<String, dynamic>?;
+        if (dateEvents != null) {
+          _dateEvents.clear();
+          _dateEvents.addEntries(dateEvents.entries.map((entry) {
+            final day = int.tryParse(entry.key) ?? 0;
+            return MapEntry(day, entry.value as String);
+          }).where((entry) => entry.key != 0));
+        }
+
+        final dateNotes = data['dateNotes'] as Map<String, dynamic>?;
+        if (dateNotes != null) {
+          _dateNotes.clear();
+          _dateNotes.addEntries(dateNotes.entries.map((entry) {
+            final day = int.tryParse(entry.key) ?? 0;
+            return MapEntry(day, entry.value as String);
+          }).where((entry) => entry.key != 0));
+        }
+      }
+    } catch (_) {
+      // ignore
+    }
+
+    setState(() {
+      _loading = false;
+      if (_selectedPeriodStart != null) {
+        _selectedDay = _selectedPeriodStart!.day;
+        _savedPeriodStartDay = _selectedPeriodStart!.day;
+      }
+      _noteController.text = _dateNotes[_selectedDay] ?? '';
+    });
   }
 
   Future<void> _selectPeriodStartDate() async {
@@ -381,6 +427,43 @@ class _CalendarPageState extends State<CalendarPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      const Expanded(
+                                        child: Text(
+                                          'Period length',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '$_periodLength days',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Slider(
+                                    activeColor: Colors.white,
+                                    inactiveColor: Colors.white38,
+                                    value: _periodLength.toDouble(),
+                                    min: 3,
+                                    max: 10,
+                                    divisions: 7,
+                                    label: '$_periodLength',
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _periodLength = value.toInt();
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(height: 10),
                                   TextField(
                                     controller: _noteController,
                                     onChanged: (value) {
@@ -403,12 +486,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                   ),
                                   const SizedBox(height: 12),
                                   ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _feedbackMessage =
-                                            'Note saved for day $_selectedDay';
-                                      });
-                                    },
+                                    onPressed: _saveNote,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.white,
                                       foregroundColor: const Color(0xFFB43772),
@@ -552,12 +630,81 @@ class _CalendarPageState extends State<CalendarPage> {
     return 'Tap to add a note or select a date.';
   }
 
+  Future<void> _saveCalendarData() async {
+    final uid = AuthService().currentUser?.uid;
+    if (uid == null) return;
+
+    if (_selectedPeriodStart != null) {
+      _generatePeriodEvents();
+    } else if (_savedPeriodStartDay != null) {
+      _selectedPeriodStart = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        _savedPeriodStartDay!,
+      );
+      _generatePeriodEvents();
+    }
+
+    try {
+      await FirestoreService().updateUserCalendarData(
+        uid: uid,
+        selectedPeriodStart: _selectedPeriodStart,
+        periodLength: _periodLength,
+        dateEvents: Map<int, String>.from(_dateEvents),
+        dateNotes: Map<int, String>.from(_dateNotes),
+      );
+    } catch (_) {
+      // ignore for now
+    }
+  }
+
+  void _generatePeriodEvents() {
+    if (_selectedPeriodStart == null) return;
+
+    _dateEvents.clear();
+    final startDay = _selectedPeriodStart!.day;
+    for (int day = startDay; day < startDay + _periodLength; day++) {
+      if (day >= 1 && day <= 30) {
+        _dateEvents[day] = 'period';
+      }
+    }
+
+    final int ovulationDay = startDay + 14;
+    if (ovulationDay >= 1 && ovulationDay <= 30) {
+      _dateEvents[ovulationDay] = 'ovulation';
+    }
+
+    for (int fertileDay = ovulationDay - 4; fertileDay < ovulationDay; fertileDay++) {
+      if (fertileDay >= 1 && fertileDay <= 30 && _dateEvents[fertileDay] != 'period') {
+        _dateEvents[fertileDay] = 'fertile';
+      }
+    }
+  }
+
   void _saveSelectedDate() {
     setState(() {
       _savedPeriodStartDay = _selectedDay;
-      _dateEvents[_selectedDay] = 'period';
+      if (_selectedPeriodStart == null || _selectedPeriodStart!.day != _selectedDay) {
+        _selectedPeriodStart = DateTime(DateTime.now().year, DateTime.now().month, _selectedDay);
+      }
+      _generatePeriodEvents();
       _feedbackMessage = 'Period date updated successfully.';
     });
+    _saveCalendarData();
+  }
+
+  void _saveNote() {
+    final note = _noteController.text.trim();
+    setState(() {
+      if (note.isEmpty) {
+        _dateNotes.remove(_selectedDay);
+        _feedbackMessage = 'Note removed for day $_selectedDay.';
+      } else {
+        _dateNotes[_selectedDay] = note;
+        _feedbackMessage = 'Note saved for day $_selectedDay.';
+      }
+    });
+    _saveCalendarData();
   }
 
   void _cancelSelectedDate() {
@@ -565,6 +712,7 @@ class _CalendarPageState extends State<CalendarPage> {
       if (_savedPeriodStartDay != null) {
         _selectedDay = _savedPeriodStartDay!;
       }
+      _noteController.text = _dateNotes[_selectedDay] ?? '';
       _feedbackMessage = null;
     });
   }

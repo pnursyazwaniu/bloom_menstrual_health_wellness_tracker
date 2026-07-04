@@ -14,6 +14,12 @@ class FirestoreService {
       'email': email,
       'dob': dob,
       'createdAt': FieldValue.serverTimestamp(),
+      'calendarData': {
+        'selectedPeriodStart': null,
+        'periodLength': 5,
+        'dateEvents': {},
+        'dateNotes': {},
+      },
     });
   }
 
@@ -33,5 +39,41 @@ class FirestoreService {
     if (dob != null) data['dob'] = dob;
     if (data.isEmpty) return;
     await _db.collection('users').doc(uid).set(data, SetOptions(merge: true));
+  }
+
+  Future<Map<String, dynamic>?> getUserCalendarData(String uid) async {
+    final doc = await _db.collection('users').doc(uid).get();
+    final data = doc.data();
+    if (data == null) return null;
+    return data['calendarData'] as Map<String, dynamic>?;
+  }
+
+  Future<void> updateUserCalendarData({
+    required String uid,
+    DateTime? selectedPeriodStart,
+    int? periodLength,
+    Map<int, String>? dateEvents,
+    Map<int, String>? dateNotes,
+  }) async {
+    final Map<String, dynamic> calendarData = {};
+    if (selectedPeriodStart != null) {
+      calendarData['selectedPeriodStart'] = selectedPeriodStart.toIso8601String();
+    }
+    if (periodLength != null) {
+      calendarData['periodLength'] = periodLength;
+    }
+    if (dateEvents != null) {
+      calendarData['dateEvents'] = dateEvents.map((key, value) => MapEntry(key.toString(), value));
+    }
+    if (dateNotes != null) {
+      calendarData['dateNotes'] = dateNotes.map((key, value) => MapEntry(key.toString(), value));
+    }
+    if (calendarData.isEmpty) return;
+    await _db.collection('users').doc(uid).set(
+      {
+        'calendarData': calendarData,
+      },
+      SetOptions(merge: true),
+    );
   }
 }

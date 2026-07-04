@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/calendar_page.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/firestore_service.dart';
 
 class TodayPage extends StatefulWidget {
   const TodayPage({super.key});
@@ -16,6 +18,47 @@ class _TodayPageState extends State<TodayPage> {
   final Set<String> _selectedSymptoms = {};
   final int _periodLengthDays = 5;
   final int _nextPeriodDays = 9;
+  String _userName = '';
+  bool _loadingProfile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final uid = AuthService().currentUser?.uid;
+    if (uid == null) {
+      if (mounted) {
+        setState(() {
+          _loadingProfile = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      final snap = await FirestoreService().getUserProfile(uid);
+      final data = snap.data();
+      if (data != null && mounted) {
+        setState(() {
+          _userName = data['name'] ?? '';
+          _loadingProfile = false;
+        });
+      } else if (mounted) {
+        setState(() {
+          _loadingProfile = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingProfile = false;
+        });
+      }
+    }
+  }
 
   int get _remainingPeriodDays {
     if (!_periodOngoing || _periodStartDate == null) return _nextPeriodDays;
@@ -72,9 +115,9 @@ class _TodayPageState extends State<TodayPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        'Hi, Sarah',
-                                        style: TextStyle(
+                                      Text(
+                                        'Hi, ${_userName.isNotEmpty ? _userName : 'there'}',
+                                        style: const TextStyle(
                                           fontSize: 28,
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF5D3A52),
@@ -112,9 +155,9 @@ class _TodayPageState extends State<TodayPage> {
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const Text(
-                                  'Hi, Sarah',
-                                  style: TextStyle(
+                                Text(
+                                  'Hi, ${_userName.isNotEmpty ? _userName : 'there'}',
+                                  style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF5D3A52),
