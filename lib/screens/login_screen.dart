@@ -18,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7E4F1),
+      backgroundColor: const Color(0xFFFFF7FD),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [
                       BoxShadow(
@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF5D3A52),
+                          color: Color(0xFF673958),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -57,20 +57,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF7B5C7A),
+                          color: Color(0xFF7A5D74),
                           height: 1.5,
                         ),
                       ),
                       const SizedBox(height: 28),
                       TextField(
                         controller: _emailController,
+                        style: const TextStyle(color: Color(0xFF412144)),
                         decoration: InputDecoration(
                           labelText: 'Email',
+                          labelStyle: const TextStyle(color: Color(0xFF5D4461)),
                           filled: true,
-                          fillColor: const Color(0xFFF5F1F5),
+                          fillColor: const Color(0xFFF7F1F8),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                            borderSide: const BorderSide(color: Color(0xFFE5DAE5)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(color: Color(0xFFE5DAE5)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(color: Color(0xFFB76D98), width: 2),
                           ),
                         ),
                       ),
@@ -78,19 +88,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
+                        style: const TextStyle(color: Color(0xFF412144)),
                         decoration: InputDecoration(
                           labelText: 'Password',
+                          labelStyle: const TextStyle(color: Color(0xFF5D4461)),
                           filled: true,
-                          fillColor: const Color(0xFFF5F1F5),
+                          fillColor: const Color(0xFFF7F1F8),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                            borderSide: const BorderSide(color: Color(0xFFE5DAE5)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(color: Color(0xFFE5DAE5)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(color: Color(0xFFB76D98), width: 2),
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _isPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
+                              color: const Color(0xFF7B5C7A),
                             ),
                             onPressed: () {
                               setState(() {
@@ -144,7 +165,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFB43772),
+                            backgroundColor: const Color(0xFFCE4E8F),
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),
                             ),
@@ -154,6 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                         ),
