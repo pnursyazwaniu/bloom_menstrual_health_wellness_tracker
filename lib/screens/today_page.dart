@@ -19,7 +19,7 @@ class _TodayPageState extends State<TodayPage> {
   final int _periodLengthDays = 5;
   final int _nextPeriodDays = 9;
   String _userName = '';
-  bool _loadingProfile = true;
+  
 
   @override
   void initState() {
@@ -31,9 +31,7 @@ class _TodayPageState extends State<TodayPage> {
     final uid = AuthService().currentUser?.uid;
     if (uid == null) {
       if (mounted) {
-        setState(() {
-          _loadingProfile = false;
-        });
+        setState(() {});
       }
       return;
     }
@@ -44,18 +42,13 @@ class _TodayPageState extends State<TodayPage> {
       if (data != null && mounted) {
         setState(() {
           _userName = data['name'] ?? '';
-          _loadingProfile = false;
         });
       } else if (mounted) {
-        setState(() {
-          _loadingProfile = false;
-        });
+        setState(() {});
       }
     } catch (_) {
       if (mounted) {
-        setState(() {
-          _loadingProfile = false;
-        });
+        setState(() {});
       }
     }
   }

@@ -18,7 +18,7 @@ class _CalendarPageState extends State<CalendarPage> {
   final Map<int, String> _dateNotes = {};
   final Map<int, String> _dateEvents = {};
   int _periodLength = 5;
-  bool _loading = true;
+  
 
   @override
   void dispose() {
@@ -35,9 +35,6 @@ class _CalendarPageState extends State<CalendarPage> {
   Future<void> _loadCalendarData() async {
     final uid = AuthService().currentUser?.uid;
     if (uid == null) {
-      setState(() {
-        _loading = false;
-      });
       return;
     }
 
@@ -72,7 +69,6 @@ class _CalendarPageState extends State<CalendarPage> {
     }
 
     setState(() {
-      _loading = false;
       if (_selectedPeriodStart != null) {
         _selectedDay = _selectedPeriodStart!.day;
         _savedPeriodStartDay = _selectedPeriodStart!.day;
