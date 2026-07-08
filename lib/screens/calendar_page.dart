@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/services/firestore_service.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/notification_service.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -25,6 +26,7 @@ class _CalendarPageState extends State<CalendarPage> {
   int _monthOffset = 0;
   bool _isYearView = false;
   bool _notifyNextPeriodAssumption = false;
+  int _daysUntilNextPeriod = 0;
   static const List<String> _monthNames = [
     'Jan',
     'Feb',
@@ -91,6 +93,8 @@ class _CalendarPageState extends State<CalendarPage> {
           }
           if (_selectedPeriodStart != null) {
             _selectedDate = _selectedPeriodStart!;
+            _daysUntilNextPeriod = NotificationService()
+                .calculateDaysUntilNextPeriod(periodStartDate: _selectedPeriodStart!);
           }
           _noteController.text = _dateNotes[_iso(_selectedDate)] ?? '';
           _prepareDisplayedMonthEvents();
@@ -143,6 +147,8 @@ class _CalendarPageState extends State<CalendarPage> {
         _selectedDate = _selectedPeriodStart!;
         _savedPeriodStartDate = _selectedPeriodStart;
         _monthOffset = _monthOffsetForDate(_selectedPeriodStart!);
+        _daysUntilNextPeriod = NotificationService()
+            .calculateDaysUntilNextPeriod(periodStartDate: _selectedPeriodStart!);
       }
       _noteController.text = _dateNotes[_iso(_selectedDate)] ?? '';
       _prepareDisplayedMonthEvents();
@@ -265,7 +271,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                       _notifyNextPeriodAssumption =
                                           !_notifyNextPeriodAssumption;
                                     });
-                                    _saveNotificationSetting(
+                                    _handleNotificationToggle(
                                       _notifyNextPeriodAssumption,
                                     );
                                   },
@@ -442,6 +448,16 @@ class _CalendarPageState extends State<CalendarPage> {
                                 fontSize: 16,
                               ),
                             ),
+                            const SizedBox(height: 8),
+                            if (_selectedPeriodStart != null)
+                              Text(
+                                'Days until next period: $_daysUntilNextPeriod days',
+                                style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
                             const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
@@ -749,6 +765,55 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
+  Future<void> _handleNotificationToggle(bool enabled) async {
+    await _saveNotificationSetting(enabled);
+
+    if (enabled && _selectedPeriodStart != null) {
+      // Schedule notification when enabled
+      try {
+        await NotificationService().scheduleNextPeriodReminder(
+          periodStartDate: _selectedPeriodStart!,
+          periodLength: _periodLength,
+          daysBeforeNotification: 1,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Period reminder notification enabled'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error scheduling notification: $e');
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error enabling notifications: ${e.toString()}'),
+            ),
+          );
+        }
+      }
+    } else if (!enabled) {
+      // Cancel notifications when disabled
+      try {
+        await NotificationService().cancelAllNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Period reminder notifications disabled'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error canceling notifications: $e');
+        }
+      }
+    }
+  }
+
   Widget _buildDayCell(int day, double dayCellWidth) {
     final shownMonth = _shownMonthDate();
     final date = DateTime(shownMonth.year, shownMonth.month, day);
@@ -943,10 +1008,28 @@ class _CalendarPageState extends State<CalendarPage> {
         _selectedPeriodStart = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
       }
       _monthOffset = _monthOffsetForDate(_selectedPeriodStart!);
+      _daysUntilNextPeriod = NotificationService()
+          .calculateDaysUntilNextPeriod(periodStartDate: _selectedPeriodStart!);
       _generatePeriodEvents();
       _feedbackMessage = 'Period date updated successfully.';
     });
     final saveError = await _saveCalendarData();
+    
+    // Schedule notification if enabled
+    if (saveError == null && _notifyNextPeriodAssumption && _selectedPeriodStart != null) {
+      try {
+        await NotificationService().scheduleNextPeriodReminder(
+          periodStartDate: _selectedPeriodStart!,
+          periodLength: _periodLength,
+          daysBeforeNotification: 1,
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error scheduling notification: $e');
+        }
+      }
+    }
+    
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -5,6 +5,7 @@ import 'package:bloom_menstrual_health_wellness_tracker/screens/registration_scr
 import 'package:bloom_menstrual_health_wellness_tracker/screens/terms_of_service_screen.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/welcome_screen.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -15,6 +16,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize notifications (with error handling so app doesn't crash)
+  try {
+    await NotificationService().initializeNotifications();
+  } catch (e) {
+    print('Warning: Failed to initialize notifications: $e');
+    // Continue app even if notifications fail
+  }
 
   runApp(const MyApp());
 }
