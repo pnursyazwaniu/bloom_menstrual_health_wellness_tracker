@@ -6,7 +6,8 @@ void main() {
   testWidgets('TodayPage renders the main interface', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MaterialApp(home: TodayPage()));
+    final tabNotifier = ValueNotifier<int>(0);
+    await tester.pumpWidget(MaterialApp(home: TodayPage(tabNotifier: tabNotifier)));
     await tester.pumpAndSettle();
 
     expect(find.text('Hi, Sarah'), findsOneWidget);

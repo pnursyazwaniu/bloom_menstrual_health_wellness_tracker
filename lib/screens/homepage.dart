@@ -13,9 +13,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0; // Index untuk simpan page mana yang aktif
+  final ValueNotifier<int> _selectedIndexNotifier = ValueNotifier<int>(0);
 
-  static final List<Widget> _pages = <Widget>[
-    const TodayPage(),
+  late final List<Widget> _pages = <Widget>[
+    TodayPage(tabNotifier: _selectedIndexNotifier),
     const CalendarPage(),
     const SelfCarePage(),
     const ProfilePage(),
@@ -24,7 +25,14 @@ class _HomePageState extends State<HomePage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      _selectedIndexNotifier.value = index;
     });
+  }
+
+  @override
+  void dispose() {
+    _selectedIndexNotifier.dispose();
+    super.dispose();
   }
 
   @override

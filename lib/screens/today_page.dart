@@ -4,7 +4,9 @@ import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.da
 import 'package:bloom_menstrual_health_wellness_tracker/services/firestore_service.dart';
 
 class TodayPage extends StatefulWidget {
-  const TodayPage({super.key});
+  const TodayPage({super.key, required this.tabNotifier});
+
+  final ValueNotifier<int> tabNotifier;
 
   @override
   State<TodayPage> createState() => _TodayPageState();
@@ -15,15 +17,30 @@ class _TodayPageState extends State<TodayPage> {
   DateTime? _periodStartDate;
   final List<String> _symptomOptions = ['Cramps', 'Mood Swings', 'Fatigue'];
   final Set<String> _selectedSymptoms = {};
-  final int _periodLengthDays = 5;
+  int _periodLengthDays = 5;
   final int _nextPeriodDays = 0;
   String _userName = '';
+  static const int _cycleLengthDays = 28;
   
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
+    _loadCalendarSummary();
+    widget.tabNotifier.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.tabNotifier.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (widget.tabNotifier.value == 0) {
+      _loadCalendarSummary();
+    }
   }
 
   Future<void> _loadUserProfile() async {
@@ -52,11 +69,52 @@ class _TodayPageState extends State<TodayPage> {
     }
   }
 
+  Future<void> _loadCalendarSummary() async {
+    final uid = AuthService().currentUser?.uid;
+    if (uid == null) return;
+
+    try {
+      final data = await FirestoreService().getUserCalendarData(uid);
+      if (data != null && mounted) {
+        final selectedPeriodStart = data['selectedPeriodStart'] != null
+            ? DateTime.tryParse(data['selectedPeriodStart'])
+            : null;
+        final periodLength = (data['periodLength'] as int?) ?? 5;
+
+        setState(() {
+          _periodStartDate = selectedPeriodStart;
+          _periodLengthDays = periodLength;
+          _periodOngoing = _calculateIsPeriodOngoing();
+        });
+      }
+    } catch (_) {
+      // ignore
+    }
+  }
+
   int get _remainingPeriodDays {
     if (!_periodOngoing || _periodStartDate == null) return _nextPeriodDays;
     final daysPassed = DateTime.now().difference(_periodStartDate!).inDays + 1;
     final remaining = _periodLengthDays - daysPassed;
     return remaining < 0 ? 0 : remaining;
+  }
+
+  int get _daysUntilNextPeriod {
+    if (_periodStartDate == null) return _nextPeriodDays;
+
+    final now = DateTime.now();
+    final diff = now.difference(_periodStartDate!).inDays;
+    if (diff < 0) {
+      return -diff;
+    }
+    final int cycleOffset = diff % _cycleLengthDays;
+    return cycleOffset == 0 ? 0 : _cycleLengthDays - cycleOffset;
+  }
+
+  bool _calculateIsPeriodOngoing() {
+    if (_periodStartDate == null) return false;
+    final daysSinceStart = DateTime.now().difference(_periodStartDate!).inDays;
+    return daysSinceStart >= 0 && daysSinceStart < _periodLengthDays;
   }
 
   String get _periodStatusText =>
@@ -68,12 +126,19 @@ class _TodayPageState extends State<TodayPage> {
           '${_periodStartDate!.year}-${_periodStartDate!.month.toString().padLeft(2, '0')}-${_periodStartDate!.day.toString().padLeft(2, '0')}';
       return 'Started: $formattedDate';
     }
+    if (_periodStartDate != null) {
+      final daysUntil = _daysUntilNextPeriod;
+      return 'Starts in $daysUntil days';
+    }
     return 'Starts in $_nextPeriodDays days';
   }
 
   String get _statusValueText {
     if (_periodOngoing) {
       return '$_remainingPeriodDays days left in cycle';
+    }
+    if (_periodStartDate != null) {
+      return '$_daysUntilNextPeriod Days Left';
     }
     return '$_nextPeriodDays Days Left';
   }
@@ -194,13 +259,16 @@ class _TodayPageState extends State<TodayPage> {
                             SizedBox(
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
+                                onPressed: () async {
+                                  final result = await Navigator.of(context).push<bool>(
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           const CalendarPage(),
                                     ),
                                   );
+                                  if (mounted && result == true) {
+                                    await _loadCalendarSummary();
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,

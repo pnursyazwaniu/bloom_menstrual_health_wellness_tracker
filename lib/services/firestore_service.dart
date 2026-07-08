@@ -19,6 +19,7 @@ class FirestoreService {
         'periodLength': 5,
         'dateEvents': {},
         'dateNotes': {},
+        'notifyNextPeriodAssumption': false,
       },
     });
   }
@@ -54,6 +55,7 @@ class FirestoreService {
     int? periodLength,
     Map<int, String>? dateEvents,
     Map<int, String>? dateNotes,
+    bool? notifyNextPeriodAssumption,
   }) async {
     final Map<String, dynamic> calendarData = {};
     if (selectedPeriodStart != null) {
@@ -67,6 +69,9 @@ class FirestoreService {
     }
     if (dateNotes != null) {
       calendarData['dateNotes'] = dateNotes.map((key, value) => MapEntry(key.toString(), value));
+    }
+    if (notifyNextPeriodAssumption != null) {
+      calendarData['notifyNextPeriodAssumption'] = notifyNextPeriodAssumption;
     }
     if (calendarData.isEmpty) return;
     await _db.collection('users').doc(uid).set(

@@ -18,7 +18,23 @@ class _CalendarPageState extends State<CalendarPage> {
   final Map<int, String> _dateNotes = {};
   final Map<int, String> _dateEvents = {};
   int _periodLength = 5;
-  
+  int _monthOffset = 0;
+  bool _isYearView = false;
+  bool _notifyNextPeriodAssumption = false;
+  static const List<String> _monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
   @override
   void dispose() {
@@ -142,8 +158,14 @@ class _CalendarPageState extends State<CalendarPage> {
                             Row(
                               children: [
                                 IconButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).maybePop(),
+                                  onPressed: () {
+                                    if (Navigator.of(context).canPop()) {
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      Navigator.of(context)
+                                          .pushReplacementNamed('/home');
+                                    }
+                                  },
                                   icon: const Icon(
                                     Icons.arrow_back,
                                     color: Colors.white,
@@ -161,9 +183,19 @@ class _CalendarPageState extends State<CalendarPage> {
                                 ),
                                 const Spacer(),
                                 IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.notifications_none,
+                                  onPressed: () {
+                                    setState(() {
+                                      _notifyNextPeriodAssumption =
+                                          !_notifyNextPeriodAssumption;
+                                    });
+                                    _saveNotificationSetting(
+                                      _notifyNextPeriodAssumption,
+                                    );
+                                  },
+                                  icon: Icon(
+                                    _notifyNextPeriodAssumption
+                                        ? Icons.notifications_active
+                                        : Icons.notifications_none,
                                     color: Colors.white,
                                   ),
                                 ),
@@ -183,12 +215,22 @@ class _CalendarPageState extends State<CalendarPage> {
                               child: Row(
                                 children: [
                                   _buildToggleButton(
-                                    label: 'Jun',
-                                    selected: true,
+                                    label: _displayedMonthName,
+                                    selected: !_isYearView,
+                                    onTap: () {
+                                      setState(() {
+                                        _isYearView = false;
+                                      });
+                                    },
                                   ),
                                   _buildToggleButton(
                                     label: 'Year',
-                                    selected: false,
+                                    selected: _isYearView,
+                                    onTap: () {
+                                      setState(() {
+                                        _isYearView = true;
+                                      });
+                                    },
                                   ),
                                 ],
                               ),
@@ -213,62 +255,16 @@ class _CalendarPageState extends State<CalendarPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Column(
-                          children: [
-                            _buildCalendarRow([
-                              30,
-                              31,
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                            ], dayCellWidth),
-                            const SizedBox(height: 8),
-                            _buildCalendarRow([
-                              6,
-                              7,
-                              8,
-                              9,
-                              10,
-                              11,
-                              12,
-                            ], dayCellWidth),
-                            const SizedBox(height: 8),
-                            _buildCalendarRow([
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                            ], dayCellWidth),
-                            const SizedBox(height: 8),
-                            _buildCalendarRow([
-                              20,
-                              21,
-                              22,
-                              23,
-                              24,
-                              25,
-                              26,
-                            ], dayCellWidth),
-                            const SizedBox(height: 8),
-                            _buildCalendarRow([
-                              27,
-                              28,
-                              29,
-                              30,
-                              1,
-                              2,
-                              3,
-                            ], dayCellWidth),
-                          ],
+                      if (_isYearView)
+                        _buildYearView()
+                      else
+                        GestureDetector(
+                          onHorizontalDragEnd: _handleMonthSwipe,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: _buildMonthView(dayCellWidth),
+                          ),
                         ),
-                      ),
                       if (_feedbackMessage != null) ...[
                         const SizedBox(height: 14),
                         Padding(
@@ -323,7 +319,8 @@ class _CalendarPageState extends State<CalendarPage> {
                               child: ElevatedButton(
                                 onPressed: _saveSelectedDate,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFB43772),
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: const Color(0xFFB43772),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -333,7 +330,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                 ),
                                 child: const Text(
                                   'Save Date',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFB43772),
+                                  ),
                                 ),
                               ),
                             ),
@@ -450,12 +450,13 @@ class _CalendarPageState extends State<CalendarPage> {
                                     inactiveColor: Colors.white38,
                                     value: _periodLength.toDouble(),
                                     min: 3,
-                                    max: 10,
-                                    divisions: 7,
+                                    max: 15,
+                                    divisions: 12,
                                     label: '$_periodLength',
                                     onChanged: (value) {
                                       setState(() {
                                         _periodLength = value.toInt();
+                                        _prepareDisplayedMonthEvents();
                                       });
                                     },
                                   ),
@@ -510,21 +511,28 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  Widget _buildToggleButton({required String label, required bool selected}) {
+  Widget _buildToggleButton({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
     return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected ? const Color(0xFF8C58A5) : Colors.white,
-              fontWeight: FontWeight.bold,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? const Color(0xFF8C58A5) : Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -537,6 +545,130 @@ class _CalendarPageState extends State<CalendarPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: days.map((day) => _buildDayCell(day, dayCellWidth)).toList(),
     );
+  }
+
+  String get _displayedMonthName {
+    final current = DateTime.now();
+    final displayed = DateTime(current.year, current.month + _monthOffset);
+    return '${_monthNames[displayed.month - 1]} ${displayed.year}';
+  }
+
+  Widget _buildMonthView(double dayCellWidth) {
+    final days = _currentMonthDays();
+    return Column(
+      children: List.generate(
+        (days.length / 7).ceil(),
+        (index) => _buildCalendarRow(
+          days.skip(index * 7).take(7).toList(),
+          dayCellWidth,
+        ),
+      ),
+    );
+  }
+
+  List<int> _currentMonthDays() {
+    final now = DateTime.now();
+    final shownMonth = DateTime(now.year, now.month + _monthOffset);
+    final firstDayOfMonth = DateTime(shownMonth.year, shownMonth.month, 1);
+    final int weekdayOffset = firstDayOfMonth.weekday % 7;
+    final List<int> days = [];
+    int dayNumber = 1 - weekdayOffset;
+    while (days.length < 42) {
+      days.add(dayNumber);
+      dayNumber++;
+    }
+    return days;
+  }
+
+  void _prepareDisplayedMonthEvents() {
+    if (_selectedPeriodStart != null) {
+      _generatePeriodEvents();
+    }
+  }
+
+  Widget _buildYearView() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Column(
+        children: List.generate(6, (rowIndex) {
+          return Row(
+            children: List.generate(2, (colIndex) {
+              final monthIndex = rowIndex * 2 + colIndex;
+              return Expanded(
+                child: Container(
+                  margin: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2C2546),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _monthNames[monthIndex],
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: List.generate(7, (dayIndex) {
+                          return Container(
+                            width: 28,
+                            height: 28,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF42365B),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${dayIndex + 1}',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          );
+        }),
+      ),
+    );
+  }
+
+  void _handleMonthSwipe(DragEndDetails details) {
+    if (details.primaryVelocity == null) return;
+    setState(() {
+      if (details.primaryVelocity! < 0) {
+        _monthOffset++;
+      } else if (details.primaryVelocity! > 0) {
+        _monthOffset--;
+      }
+    });
+  }
+
+  Future<void> _saveNotificationSetting(bool enabled) async {
+    final uid = AuthService().currentUser?.uid;
+    if (uid == null) return;
+    try {
+      await FirestoreService().updateUserCalendarData(
+        uid: uid,
+        notifyNextPeriodAssumption: enabled,
+      );
+    } catch (_) {
+      // ignore
+    }
   }
 
   Widget _buildDayCell(int day, double dayCellWidth) {
@@ -648,6 +780,7 @@ class _CalendarPageState extends State<CalendarPage> {
         periodLength: _periodLength,
         dateEvents: Map<int, String>.from(_dateEvents),
         dateNotes: Map<int, String>.from(_dateNotes),
+        notifyNextPeriodAssumption: _notifyNextPeriodAssumption,
       );
     } catch (_) {
       // ignore for now
@@ -677,7 +810,7 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
-  void _saveSelectedDate() {
+  Future<void> _saveSelectedDate() async {
     setState(() {
       _savedPeriodStartDay = _selectedDay;
       if (_selectedPeriodStart == null || _selectedPeriodStart!.day != _selectedDay) {
@@ -686,7 +819,10 @@ class _CalendarPageState extends State<CalendarPage> {
       _generatePeriodEvents();
       _feedbackMessage = 'Period date updated successfully.';
     });
-    _saveCalendarData();
+    await _saveCalendarData();
+    if (mounted && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(true);
+    }
   }
 
   void _saveNote() {
