@@ -13,11 +13,10 @@ class TodayPage extends StatefulWidget {
 class _TodayPageState extends State<TodayPage> {
   bool _periodOngoing = false;
   DateTime? _periodStartDate;
-  bool _notificationsEnabled = false;
   final List<String> _symptomOptions = ['Cramps', 'Mood Swings', 'Fatigue'];
   final Set<String> _selectedSymptoms = {};
   final int _periodLengthDays = 5;
-  final int _nextPeriodDays = 9;
+  final int _nextPeriodDays = 0;
   String _userName = '';
   
 
@@ -118,29 +117,13 @@ class _TodayPageState extends State<TodayPage> {
                                       ),
                                       const SizedBox(height: 8),
                                       const Text(
-                                        'Your cycle summary for today',
+                                        'Your cycle summary',
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Color(0xFF7B5C7A),
                                         ),
                                       ),
                                     ],
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Material(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(16),
-                                    onTap: () {},
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(12),
-                                      child: Icon(
-                                        Icons.tune,
-                                        color: Color(0xFFB43772),
-                                      ),
-                                    ),
                                   ),
                                 ),
                               ],
@@ -158,29 +141,10 @@ class _TodayPageState extends State<TodayPage> {
                                 ),
                                 const SizedBox(height: 8),
                                 const Text(
-                                  'Your cycle summary for today',
+                                  'Your cycle summary',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Color(0xFF7B5C7A),
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Material(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(16),
-                                      onTap: () {},
-                                      child: const Padding(
-                                        padding: EdgeInsets.all(12),
-                                        child: Icon(
-                                          Icons.tune,
-                                          color: Color(0xFFB43772),
-                                        ),
-                                      ),
-                                    ),
                                   ),
                                 ),
                               ],
@@ -328,34 +292,6 @@ class _TodayPageState extends State<TodayPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      _SectionCard(
-                        title: 'Daily Notifications',
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Flexible(
-                              child: Text(
-                                'Remind me daily to log symptoms.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF4B3A4F),
-                                ),
-                              ),
-                            ),
-                            Switch(
-                              value: _notificationsEnabled,
-                              activeThumbColor: const Color(0xFFB43772),
-                              onChanged: (value) {
-                                setState(() {
-                                  _notificationsEnabled = value;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                     ],
                   ),
                 );

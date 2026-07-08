@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.sunny), label: 'Today'),
+          BottomNavigationBarItem(icon: Icon(Icons.sunny), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month),
             label: 'Calendar',
