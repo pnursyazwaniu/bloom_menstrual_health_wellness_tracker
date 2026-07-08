@@ -97,7 +97,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final DateTime now = DateTime.now();
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: _selectedPeriodStart ?? now,
       firstDate: now.subtract(const Duration(days: 365)),
       lastDate: now.add(const Duration(days: 365)),
       builder: (context, child) {
@@ -118,12 +118,17 @@ class _CalendarPageState extends State<CalendarPage> {
         );
       },
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _selectedPeriodStart = picked;
         _selectedDay = picked.day;
         _noteController.text = _dateNotes[_selectedDay] ?? '';
+        _generatePeriodEvents();
+        _feedbackMessage = 'Period start date updated: ${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
       });
+      
+      // Langsung simpan ke Firestore
+      await _saveCalendarData();
     }
   }
 

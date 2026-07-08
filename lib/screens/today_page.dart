@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/calendar_page.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
@@ -75,11 +76,11 @@ class _TodayPageState extends State<TodayPage> {
 
     try {
       final data = await FirestoreService().getUserCalendarData(uid);
-      if (data != null && mounted) {
-        final selectedPeriodStart = data['selectedPeriodStart'] != null
+      if (mounted) {
+        final selectedPeriodStart = data != null && data['selectedPeriodStart'] != null
             ? DateTime.tryParse(data['selectedPeriodStart'])
             : null;
-        final periodLength = (data['periodLength'] as int?) ?? 5;
+        final periodLength = (data?['periodLength'] as int?) ?? 5;
 
         setState(() {
           _periodStartDate = selectedPeriodStart;
@@ -87,14 +88,20 @@ class _TodayPageState extends State<TodayPage> {
           _periodOngoing = _calculateIsPeriodOngoing();
         });
       }
-    } catch (_) {
-      // ignore
+    } catch (e) {
+      // Log error for debugging if needed
+      if (kDebugMode) {
+        print('Error loading calendar summary: $e');
+      }
     }
   }
 
   int get _remainingPeriodDays {
     if (!_periodOngoing || _periodStartDate == null) return _nextPeriodDays;
-    final daysPassed = DateTime.now().difference(_periodStartDate!).inDays + 1;
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final dateStart = DateTime(_periodStartDate!.year, _periodStartDate!.month, _periodStartDate!.day);
+    final daysPassed = todayStart.difference(dateStart).inDays + 1;
     final remaining = _periodLengthDays - daysPassed;
     return remaining < 0 ? 0 : remaining;
   }
@@ -103,44 +110,66 @@ class _TodayPageState extends State<TodayPage> {
     if (_periodStartDate == null) return _nextPeriodDays;
 
     final now = DateTime.now();
-    final diff = now.difference(_periodStartDate!).inDays;
+    // Set time to start of day for accurate comparison
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final dateStart = DateTime(_periodStartDate!.year, _periodStartDate!.month, _periodStartDate!.day);
+    
+    final diff = todayStart.difference(dateStart).inDays;
     if (diff < 0) {
+      // Period start date is in the future
       return -diff;
     }
+    // Calculate days until next period (28 day cycle)
     final int cycleOffset = diff % _cycleLengthDays;
-    return cycleOffset == 0 ? 0 : _cycleLengthDays - cycleOffset;
+    final daysUntil = _cycleLengthDays - cycleOffset;
+    return daysUntil == _cycleLengthDays ? 0 : daysUntil;
   }
 
   bool _calculateIsPeriodOngoing() {
     if (_periodStartDate == null) return false;
-    final daysSinceStart = DateTime.now().difference(_periodStartDate!).inDays;
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final dateStart = DateTime(_periodStartDate!.year, _periodStartDate!.month, _periodStartDate!.day);
+    final daysSinceStart = todayStart.difference(dateStart).inDays;
     return daysSinceStart >= 0 && daysSinceStart < _periodLengthDays;
   }
 
-  String get _periodStatusText =>
-      _periodOngoing ? 'Period Ongoing' : 'Next Period';
+  String get _periodStatusText {
+    if (_periodStartDate == null) {
+      return 'No Period Set';
+    }
+    return _periodOngoing ? 'Period Ongoing' : 'Next Period';
+  }
 
   String get _periodDetailText {
-    if (_periodOngoing && _periodStartDate != null) {
-      final formattedDate =
-          '${_periodStartDate!.year}-${_periodStartDate!.month.toString().padLeft(2, '0')}-${_periodStartDate!.day.toString().padLeft(2, '0')}';
-      return 'Started: $formattedDate';
+    if (_periodStartDate == null) {
+      return 'No period date set';
     }
-    if (_periodStartDate != null) {
+    final formattedDate =
+        '${_periodStartDate!.year}-${_periodStartDate!.month.toString().padLeft(2, '0')}-${_periodStartDate!.day.toString().padLeft(2, '0')}';
+    
+    if (_periodOngoing) {
+      return 'Period started: $formattedDate';
+    } else {
       final daysUntil = _daysUntilNextPeriod;
-      return 'Starts in $daysUntil days';
+      if (daysUntil == 0) {
+        return 'Period starts today: $formattedDate';
+      } else if (daysUntil > 0) {
+        return 'Next period in $daysUntil days';
+      } else {
+        return 'Period was $formattedDate';
+      }
     }
-    return 'Starts in $_nextPeriodDays days';
   }
 
   String get _statusValueText {
+    if (_periodStartDate == null) {
+      return '0 date set';
+    }
     if (_periodOngoing) {
-      return '$_remainingPeriodDays days left in cycle';
+      return '$_remainingPeriodDays days left';
     }
-    if (_periodStartDate != null) {
-      return '$_daysUntilNextPeriod Days Left';
-    }
-    return '$_nextPeriodDays Days Left';
+    return '$_daysUntilNextPeriod Days Left';
   }
 
   @override
@@ -260,13 +289,14 @@ class _TodayPageState extends State<TodayPage> {
                               height: 52,
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  final result = await Navigator.of(context).push<bool>(
+                                  await Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           const CalendarPage(),
                                     ),
                                   );
-                                  if (mounted && result == true) {
+                                  // Reload data when returning from calendar
+                                  if (mounted) {
                                     await _loadCalendarSummary();
                                   }
                                 },

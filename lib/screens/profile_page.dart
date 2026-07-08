@@ -96,26 +96,17 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(width: 48),
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                'PROFILE',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                ),
+                          Center(
+                            child: Text(
+                              'PROFILE',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
                               ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.notifications_none,
-                              color: Colors.white,
                             ),
                           ),
                         ],

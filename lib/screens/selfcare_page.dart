@@ -195,7 +195,7 @@ void _showRelaxationOptions(BuildContext context) {
 }
 
 class _RelaxationMeditationPage extends StatefulWidget {
-  const _RelaxationMeditationPage({Key? key}) : super(key: key);
+  const _RelaxationMeditationPage({super.key});
 
   @override
   State<_RelaxationMeditationPage> createState() =>
@@ -426,7 +426,7 @@ class _RelaxationMeditationPageState extends State<_RelaxationMeditationPage>
 }
 
 class _RelaxationBreathingPage extends StatefulWidget {
-  const _RelaxationBreathingPage({Key? key}) : super(key: key);
+  const _RelaxationBreathingPage({super.key});
 
   @override
   State<_RelaxationBreathingPage> createState() =>
@@ -631,7 +631,7 @@ class _RelaxationBreathingPageState extends State<_RelaxationBreathingPage>
 }
 
 class SelfCarePage extends StatelessWidget {
-  const SelfCarePage({Key? key}) : super(key: key);
+  const SelfCarePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -643,14 +643,7 @@ class SelfCarePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _IconButtonCard(icon: Icons.settings, onTap: () {}),
-                  _IconButtonCard(icon: Icons.notifications, onTap: () {}),
-                ],
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFE4F0),
@@ -797,41 +790,6 @@ class SelfCarePage extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _IconButtonCard extends StatelessWidget {
-  const _IconButtonCard({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              const BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.05),
-                blurRadius: 12,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: const Color(0xFFB43772)),
         ),
       ),
     );
