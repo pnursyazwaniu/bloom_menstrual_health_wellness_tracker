@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/services/auth_service.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/services/firestore_service.dart';
@@ -10,13 +13,14 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  int _selectedDay = DateTime.now().day;
-  int? _savedPeriodStartDay;
+  DateTime _selectedDate = DateTime.now();
+  DateTime? _savedPeriodStartDate;
   String? _feedbackMessage;
   DateTime? _selectedPeriodStart;
   final TextEditingController _noteController = TextEditingController();
-  final Map<int, String> _dateNotes = {};
-  final Map<int, String> _dateEvents = {};
+  final Map<String, String> _dateNotes = {};
+  final Map<String, String> _dateEvents = {};
+  StreamSubscription<Map<String, dynamic>?>? _calendarSubscription;
   int _periodLength = 5;
   int _monthOffset = 0;
   bool _isYearView = false;
@@ -37,19 +41,71 @@ class _CalendarPageState extends State<CalendarPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadCalendarData();
+    _subscribeToCalendarStream();
+  }
+
+  Future<String?> _getCurrentUid() async {
+    final currentUser = AuthService().currentUser;
+    if (currentUser?.uid != null) {
+      return currentUser!.uid;
+    }
+    final user = await AuthService().authStateChanges().firstWhere(
+      (user) => user != null,
+      orElse: () => null,
+    );
+    return user?.uid;
+  }
+
+  @override
   void dispose() {
+    _calendarSubscription?.cancel();
     _noteController.dispose();
     super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadCalendarData();
+  void _subscribeToCalendarStream() async {
+    final uid = await _getCurrentUid();
+    if (uid == null) return;
+    _calendarSubscription = FirestoreService().getUserCalendarDataStream(uid).listen(
+      (data) {
+        if (!mounted) return;
+        if (data == null) return;
+
+        final selectedPeriodStart = data['selectedPeriodStart'] != null
+            ? DateTime.tryParse(data['selectedPeriodStart'])
+            : null;
+        final periodLength = (data['periodLength'] as int?) ?? 5;
+        final dateNotes = data['dateNotes'] as Map<String, dynamic>?;
+
+        setState(() {
+          _selectedPeriodStart = selectedPeriodStart;
+          _periodLength = periodLength;
+          _dateNotes.clear();
+          if (dateNotes != null) {
+            _dateNotes.addEntries(dateNotes.entries.map((entry) {
+              return MapEntry(entry.key, entry.value as String);
+            }));
+          }
+          if (_selectedPeriodStart != null) {
+            _selectedDate = _selectedPeriodStart!;
+          }
+          _noteController.text = _dateNotes[_iso(_selectedDate)] ?? '';
+          _prepareDisplayedMonthEvents();
+        });
+      },
+      onError: (error) {
+        if (kDebugMode) {
+          print('Calendar stream error: $error');
+        }
+      },
+    );
   }
 
   Future<void> _loadCalendarData() async {
-    final uid = AuthService().currentUser?.uid;
+    final uid = await _getCurrentUid();
     if (uid == null) {
       return;
     }
@@ -66,18 +122,16 @@ class _CalendarPageState extends State<CalendarPage> {
         if (dateEvents != null) {
           _dateEvents.clear();
           _dateEvents.addEntries(dateEvents.entries.map((entry) {
-            final day = int.tryParse(entry.key) ?? 0;
-            return MapEntry(day, entry.value as String);
-          }).where((entry) => entry.key != 0));
+            return MapEntry(entry.key, entry.value as String);
+          }));
         }
 
         final dateNotes = data['dateNotes'] as Map<String, dynamic>?;
         if (dateNotes != null) {
           _dateNotes.clear();
           _dateNotes.addEntries(dateNotes.entries.map((entry) {
-            final day = int.tryParse(entry.key) ?? 0;
-            return MapEntry(day, entry.value as String);
-          }).where((entry) => entry.key != 0));
+            return MapEntry(entry.key, entry.value as String);
+          }));
         }
       }
     } catch (_) {
@@ -86,10 +140,12 @@ class _CalendarPageState extends State<CalendarPage> {
 
     setState(() {
       if (_selectedPeriodStart != null) {
-        _selectedDay = _selectedPeriodStart!.day;
-        _savedPeriodStartDay = _selectedPeriodStart!.day;
+        _selectedDate = _selectedPeriodStart!;
+        _savedPeriodStartDate = _selectedPeriodStart;
+        _monthOffset = _monthOffsetForDate(_selectedPeriodStart!);
       }
-      _noteController.text = _dateNotes[_selectedDay] ?? '';
+      _noteController.text = _dateNotes[_iso(_selectedDate)] ?? '';
+      _prepareDisplayedMonthEvents();
     });
   }
 
@@ -121,15 +177,31 @@ class _CalendarPageState extends State<CalendarPage> {
     if (picked != null && mounted) {
       setState(() {
         _selectedPeriodStart = picked;
-        _selectedDay = picked.day;
-        _noteController.text = _dateNotes[_selectedDay] ?? '';
+        _savedPeriodStartDate = picked;
+        _selectedDate = picked;
+        _monthOffset = _monthOffsetForDate(picked);
+        _noteController.text = _dateNotes[_iso(_selectedDate)] ?? '';
         _generatePeriodEvents();
         _feedbackMessage = 'Period start date updated: ${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
       });
       
-      // Langsung simpan ke Firestore
-      await _saveCalendarData();
+      // Save to Firestore and show feedback
+      final saveError = await _saveCalendarData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(saveError == null ? 'Saved period start' : saveError),
+          ),
+        );
+      }
     }
+  }
+
+  String _iso(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  DateTime _shownMonthDate() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month + _monthOffset);
   }
 
   @override
@@ -454,9 +526,9 @@ class _CalendarPageState extends State<CalendarPage> {
                                     activeColor: Colors.white,
                                     inactiveColor: Colors.white38,
                                     value: _periodLength.toDouble(),
-                                    min: 3,
+                                    min: 5,
                                     max: 15,
-                                    divisions: 12,
+                                    divisions: 10,
                                     label: '$_periodLength',
                                     onChanged: (value) {
                                       setState(() {
@@ -469,7 +541,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                   TextField(
                                     controller: _noteController,
                                     onChanged: (value) {
-                                      _dateNotes[_selectedDay] = value;
+                                      _dateNotes[_iso(_selectedDate)] = value;
                                     },
                                     decoration: InputDecoration(
                                       filled: true,
@@ -660,6 +732,7 @@ class _CalendarPageState extends State<CalendarPage> {
       } else if (details.primaryVelocity! > 0) {
         _monthOffset--;
       }
+      _prepareDisplayedMonthEvents();
     });
   }
 
@@ -677,9 +750,13 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Widget _buildDayCell(int day, double dayCellWidth) {
-    final event = _dateEvents[day];
-    final bool isSelected = day == _selectedDay;
-    final bool inMonth = day >= 1 && day <= 30;
+    final shownMonth = _shownMonthDate();
+    final date = DateTime(shownMonth.year, shownMonth.month, day);
+    final iso = _iso(date);
+    final event = _dateEvents[iso];
+    final bool isSelected = _iso(_selectedDate) == iso;
+    final int daysInMonth = DateTime(shownMonth.year, shownMonth.month + 1, 0).day;
+    final bool inMonth = date.month == shownMonth.month && day >= 1 && day <= daysInMonth;
     final bool isPeriod = event == 'period';
     final bool isFertile = event == 'fertile';
     final bool isOvulation = event == 'ovulation';
@@ -696,9 +773,9 @@ class _CalendarPageState extends State<CalendarPage> {
       onTap: () {
         if (inMonth) {
           setState(() {
-            _selectedDay = day;
+            _selectedDate = date;
             _feedbackMessage = null;
-            _noteController.text = _dateNotes[_selectedDay] ?? '';
+            _noteController.text = _dateNotes[iso] ?? ''; 
           });
         }
       },
@@ -714,7 +791,7 @@ class _CalendarPageState extends State<CalendarPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              day.toString(),
+              date.day.toString(),
               style: TextStyle(
                 color: inMonth ? Colors.white : Colors.white38,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
@@ -737,7 +814,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   String _getSelectedDayTitle() {
-    final event = _dateEvents[_selectedDay];
+    final event = _dateEvents[_iso(_selectedDate)];
     if (event == 'ovulation') {
       return 'Ovulation Day';
     }
@@ -751,30 +828,41 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   String _getSelectedDaySubtitle() {
-    if (_dateEvents[_selectedDay] == 'ovulation') {
+    if (_dateEvents[_iso(_selectedDate)] == 'ovulation') {
       return 'High chance of getting pregnant.';
     }
-    if (_dateEvents[_selectedDay] == 'fertile') {
+    if (_dateEvents[_iso(_selectedDate)] == 'fertile') {
       return 'Medium chance of fertility.';
     }
-    if (_dateEvents[_selectedDay] == 'period') {
+    if (_dateEvents[_iso(_selectedDate)] == 'period') {
       return 'Period tracking day.';
     }
     return 'Tap to add a note or select a date.';
   }
 
-  Future<void> _saveCalendarData() async {
-    final uid = AuthService().currentUser?.uid;
-    if (uid == null) return;
+  Future<String?> _saveCalendarData() async {
+    final uid = await _getCurrentUid();
+    if (uid == null) {
+      const message = 'Tidak dapat menyimpan: pengguna belum masuk.';
+      if (kDebugMode) {
+        print(message);
+      }
+      return message;
+    }
+
+    if (_selectedPeriodStart == null) {
+      if (_savedPeriodStartDate != null) {
+        _selectedPeriodStart = _savedPeriodStartDate;
+      } else {
+        _selectedPeriodStart = _selectedDate;
+      }
+    }
 
     if (_selectedPeriodStart != null) {
-      _generatePeriodEvents();
-    } else if (_savedPeriodStartDay != null) {
-      _selectedPeriodStart = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        _savedPeriodStartDay!,
-      );
+      _monthOffset = _monthOffsetForDate(_selectedPeriodStart!);
+    }
+
+    if (_dateEvents.isEmpty && _selectedPeriodStart != null) {
       _generatePeriodEvents();
     }
 
@@ -783,12 +871,18 @@ class _CalendarPageState extends State<CalendarPage> {
         uid: uid,
         selectedPeriodStart: _selectedPeriodStart,
         periodLength: _periodLength,
-        dateEvents: Map<int, String>.from(_dateEvents),
-        dateNotes: Map<int, String>.from(_dateNotes),
+        dateEvents: Map<String, String>.from(_dateEvents),
+        dateNotes: Map<String, String>.from(_dateNotes),
         notifyNextPeriodAssumption: _notifyNextPeriodAssumption,
       );
-    } catch (_) {
-      // ignore for now
+      return null;
+    } catch (e, stack) {
+      final message = 'Gagal menyimpan: ${e.toString()}';
+      if (kDebugMode) {
+        print(message);
+        print(stack);
+      }
+      return message;
     }
   }
 
@@ -796,62 +890,115 @@ class _CalendarPageState extends State<CalendarPage> {
     if (_selectedPeriodStart == null) return;
 
     _dateEvents.clear();
-    final startDay = _selectedPeriodStart!.day;
-    for (int day = startDay; day < startDay + _periodLength; day++) {
-      if (day >= 1 && day <= 30) {
-        _dateEvents[day] = 'period';
+    final shownMonth = _shownMonthDate();
+    final monthStart = DateTime(shownMonth.year, shownMonth.month, 1);
+    final monthEnd = DateTime(shownMonth.year, shownMonth.month + 1, 0);
+
+    // cycle length default 28 days
+    const int cycleLength = 28;
+
+    // Find cycles that could affect the shown month: compute cyclesPassed for a range
+    final firstPossible = monthStart.subtract(const Duration(days: cycleLength));
+    final lastPossible = monthEnd.add(const Duration(days: cycleLength));
+
+    // Start from the nearest cycle start before or equal to firstPossible
+    final baseStart = DateTime(_selectedPeriodStart!.year, _selectedPeriodStart!.month, _selectedPeriodStart!.day);
+    int cyclesBefore = ((firstPossible.difference(baseStart).inDays) / cycleLength).floor();
+    // ensure we include a few cycles before
+    cyclesBefore = cyclesBefore - 1;
+
+    for (int c = 0; c < 6; c++) {
+      final cycleStart = baseStart.add(Duration(days: (cyclesBefore + c) * cycleLength));
+      // if cycleStart is beyond lastPossible by a cycle, break
+      if (cycleStart.isAfter(lastPossible)) break;
+
+      // mark period days
+      for (int i = 0; i < _periodLength; i++) {
+        final d = cycleStart.add(Duration(days: i));
+        if (!d.isBefore(monthStart) && !d.isAfter(monthEnd)) {
+          _dateEvents[_iso(d)] = 'period';
+        }
       }
-    }
 
-    final int ovulationDay = startDay + 14;
-    if (ovulationDay >= 1 && ovulationDay <= 30) {
-      _dateEvents[ovulationDay] = 'ovulation';
-    }
+      final ovulation = cycleStart.add(const Duration(days: 14));
+      if (!ovulation.isBefore(monthStart) && !ovulation.isAfter(monthEnd)) {
+        _dateEvents[_iso(ovulation)] = 'ovulation';
+      }
 
-    for (int fertileDay = ovulationDay - 4; fertileDay < ovulationDay; fertileDay++) {
-      if (fertileDay >= 1 && fertileDay <= 30 && _dateEvents[fertileDay] != 'period') {
-        _dateEvents[fertileDay] = 'fertile';
+      for (int f = -4; f < 0; f++) {
+        final fd = ovulation.add(Duration(days: f));
+        if (!fd.isBefore(monthStart) && !fd.isAfter(monthEnd)) {
+          if (_dateEvents[_iso(fd)] != 'period') {
+            _dateEvents[_iso(fd)] = 'fertile';
+          }
+        }
       }
     }
   }
 
   Future<void> _saveSelectedDate() async {
     setState(() {
-      _savedPeriodStartDay = _selectedDay;
-      if (_selectedPeriodStart == null || _selectedPeriodStart!.day != _selectedDay) {
-        _selectedPeriodStart = DateTime(DateTime.now().year, DateTime.now().month, _selectedDay);
+      _savedPeriodStartDate = _selectedDate;
+      if (_selectedPeriodStart == null || !_isSameDate(_selectedPeriodStart!, _selectedDate)) {
+        _selectedPeriodStart = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
       }
+      _monthOffset = _monthOffsetForDate(_selectedPeriodStart!);
       _generatePeriodEvents();
       _feedbackMessage = 'Period date updated successfully.';
     });
-    await _saveCalendarData();
-    if (mounted && Navigator.of(context).canPop()) {
-      Navigator.of(context).pop(true);
+    final saveError = await _saveCalendarData();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(saveError == null ? 'Saved period date' : saveError),
+        ),
+      );
+      if (saveError == null && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop(true);
+      }
     }
   }
 
   void _saveNote() {
     final note = _noteController.text.trim();
     setState(() {
+      final key = _iso(_selectedDate);
       if (note.isEmpty) {
-        _dateNotes.remove(_selectedDay);
-        _feedbackMessage = 'Note removed for day $_selectedDay.';
+        _dateNotes.remove(key);
+        _feedbackMessage = 'Note removed for $key.';
       } else {
-        _dateNotes[_selectedDay] = note;
-        _feedbackMessage = 'Note saved for day $_selectedDay.';
+        _dateNotes[key] = note;
+        _feedbackMessage = 'Note saved for $key.';
       }
     });
-    _saveCalendarData();
+    _saveCalendarData().then((saveError) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(saveError == null ? 'Saved note' : saveError),
+          ),
+        );
+      }
+    });
   }
 
   void _cancelSelectedDate() {
     setState(() {
-      if (_savedPeriodStartDay != null) {
-        _selectedDay = _savedPeriodStartDay!;
+      if (_savedPeriodStartDate != null) {
+        _selectedDate = _savedPeriodStartDate!;
       }
-      _noteController.text = _dateNotes[_selectedDay] ?? '';
+      _noteController.text = _dateNotes[_iso(_selectedDate)] ?? '';
       _feedbackMessage = null;
     });
+  }
+
+  int _monthOffsetForDate(DateTime date) {
+    final now = DateTime.now();
+    return (date.year - now.year) * 12 + date.month - now.month;
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }
 

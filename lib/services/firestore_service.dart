@@ -49,12 +49,19 @@ class FirestoreService {
     return data['calendarData'] as Map<String, dynamic>?;
   }
 
+  Stream<Map<String, dynamic>?> getUserCalendarDataStream(String uid) {
+    return _db.collection('users').doc(uid).snapshots().map((doc) {
+      final data = doc.data();
+      return data == null ? null : data['calendarData'] as Map<String, dynamic>?;
+    });
+  }
+
   Future<void> updateUserCalendarData({
     required String uid,
     DateTime? selectedPeriodStart,
     int? periodLength,
-    Map<int, String>? dateEvents,
-    Map<int, String>? dateNotes,
+    Map<String, String>? dateEvents,
+    Map<String, String>? dateNotes,
     bool? notifyNextPeriodAssumption,
   }) async {
     final Map<String, dynamic> calendarData = {};
@@ -65,10 +72,10 @@ class FirestoreService {
       calendarData['periodLength'] = periodLength;
     }
     if (dateEvents != null) {
-      calendarData['dateEvents'] = dateEvents.map((key, value) => MapEntry(key.toString(), value));
+      calendarData['dateEvents'] = dateEvents;
     }
     if (dateNotes != null) {
-      calendarData['dateNotes'] = dateNotes.map((key, value) => MapEntry(key.toString(), value));
+      calendarData['dateNotes'] = dateNotes;
     }
     if (notifyNextPeriodAssumption != null) {
       calendarData['notifyNextPeriodAssumption'] = notifyNextPeriodAssumption;

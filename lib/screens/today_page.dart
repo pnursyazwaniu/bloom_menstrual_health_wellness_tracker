@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/calendar_page.dart';
@@ -22,19 +24,20 @@ class _TodayPageState extends State<TodayPage> {
   final int _nextPeriodDays = 0;
   String _userName = '';
   static const int _cycleLengthDays = 28;
-  
+  StreamSubscription<Map<String, dynamic>?>? _calendarSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
-    _loadCalendarSummary();
+    _subscribeToCalendarStream();
     widget.tabNotifier.addListener(_onTabChanged);
   }
 
   @override
   void dispose() {
     widget.tabNotifier.removeListener(_onTabChanged);
+    _calendarSubscription?.cancel();
     super.dispose();
   }
 
@@ -42,6 +45,30 @@ class _TodayPageState extends State<TodayPage> {
     if (widget.tabNotifier.value == 0) {
       _loadCalendarSummary();
     }
+  }
+
+  void _subscribeToCalendarStream() {
+    final uid = AuthService().currentUser?.uid;
+    if (uid == null) return;
+    _calendarSubscription = FirestoreService().getUserCalendarDataStream(uid).listen(
+      (data) {
+        if (!mounted) return;
+        final selectedPeriodStart = data != null && data['selectedPeriodStart'] != null
+            ? DateTime.tryParse(data['selectedPeriodStart'])
+            : null;
+        final periodLength = (data?['periodLength'] as int?) ?? 5;
+        setState(() {
+          _periodStartDate = selectedPeriodStart;
+          _periodLengthDays = periodLength;
+          _periodOngoing = _calculateIsPeriodOngoing();
+        });
+      },
+      onError: (error) {
+        if (kDebugMode) {
+          print('Calendar stream error: $error');
+        }
+      },
+    );
   }
 
   Future<void> _loadUserProfile() async {
@@ -106,23 +133,28 @@ class _TodayPageState extends State<TodayPage> {
     return remaining < 0 ? 0 : remaining;
   }
 
-  int get _daysUntilNextPeriod {
-    if (_periodStartDate == null) return _nextPeriodDays;
-
+  DateTime? get _nextPeriodStartDate {
+    if (_periodStartDate == null) return null;
     final now = DateTime.now();
-    // Set time to start of day for accurate comparison
     final todayStart = DateTime(now.year, now.month, now.day);
     final dateStart = DateTime(_periodStartDate!.year, _periodStartDate!.month, _periodStartDate!.day);
-    
     final diff = todayStart.difference(dateStart).inDays;
+
     if (diff < 0) {
-      // Period start date is in the future
-      return -diff;
+      return dateStart;
     }
-    // Calculate days until next period (28 day cycle)
-    final int cycleOffset = diff % _cycleLengthDays;
-    final daysUntil = _cycleLengthDays - cycleOffset;
-    return daysUntil == _cycleLengthDays ? 0 : daysUntil;
+
+    final cyclesPassed = (diff / _cycleLengthDays).floor();
+    return dateStart.add(Duration(days: (cyclesPassed + 1) * _cycleLengthDays));
+  }
+
+  int get _daysUntilNextPeriod {
+    final next = _nextPeriodStartDate;
+    if (next == null) return _nextPeriodDays;
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final daysUntil = next.difference(todayStart).inDays;
+    return daysUntil < 0 ? 0 : daysUntil;
   }
 
   bool _calculateIsPeriodOngoing() {
@@ -153,9 +185,18 @@ class _TodayPageState extends State<TodayPage> {
     } else {
       final daysUntil = _daysUntilNextPeriod;
       if (daysUntil == 0) {
-        return 'Period starts today: $formattedDate';
+        final nextDate = _periodStartDate!;
+        final nf = '${nextDate.year}-${nextDate.month.toString().padLeft(2, '0')}-${nextDate.day.toString().padLeft(2, '0')}';
+        return 'Period starts today: $nf';
       } else if (daysUntil > 0) {
-        return 'Next period in $daysUntil days';
+        // compute next period start date
+        final now = DateTime.now();
+        final todayStart = DateTime(now.year, now.month, now.day);
+        final dateStart = DateTime(_periodStartDate!.year, _periodStartDate!.month, _periodStartDate!.day);
+        final int cyclesPassed = (todayStart.difference(dateStart).inDays / _cycleLengthDays).floor();
+        final nextCycleStart = dateStart.add(Duration(days: (cyclesPassed + 1) * _cycleLengthDays));
+        final nf = '${nextCycleStart.year}-${nextCycleStart.month.toString().padLeft(2, '0')}-${nextCycleStart.day.toString().padLeft(2, '0')}';
+        return 'Next period in $daysUntil days (around $nf)';
       } else {
         return 'Period was $formattedDate';
       }
