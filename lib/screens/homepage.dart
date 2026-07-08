@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/calendar_page.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/profile_page.dart';
-import 'package:bloom_menstrual_health_wellness_tracker/screens/selfcare_page.dart';
+import 'package:bloom_menstrual_health_wellness_tracker/screens/selfcare_page_enhanced.dart';
 import 'package:bloom_menstrual_health_wellness_tracker/screens/today_page.dart';
 
 class HomePage extends StatefulWidget {
