@@ -196,7 +196,7 @@ class _CalendarPageState extends State<CalendarPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(saveError == null ? 'Saved period start' : saveError),
+            content: Text(saveError ?? 'Saved period start'),
           ),
         );
       }
@@ -218,7 +218,11 @@ class _CalendarPageState extends State<CalendarPage> {
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1024),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width < 720
+                  ? MediaQuery.of(context).size.width
+                  : 720,
+            ),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final bool isWide = constraints.maxWidth > 720;
@@ -1033,7 +1037,7 @@ class _CalendarPageState extends State<CalendarPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(saveError == null ? 'Saved period date' : saveError),
+          content: Text(saveError ?? 'Saved period date'),
         ),
       );
       if (saveError == null && Navigator.of(context).canPop()) {
@@ -1058,7 +1062,7 @@ class _CalendarPageState extends State<CalendarPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(saveError == null ? 'Saved note' : saveError),
+            content: Text(saveError ?? 'Saved note'),
           ),
         );
       }

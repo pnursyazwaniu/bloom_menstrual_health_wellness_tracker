@@ -6,15 +6,21 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFE6A1C0),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/images/welcomescreen.png',
-            fit: BoxFit.cover,
-          ),
-          Container(
-            color: Colors.black.withOpacity(0.16),
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Color(0xFFE6A1C0),
+                image: DecorationImage(
+                  image: AssetImage('assets/images/welcomescreen2.png'),
+                  fit: BoxFit.fill,
+                  alignment: Alignment.center,
+                ),
+              ),
+            ),
           ),
           SafeArea(
             child: Padding(
@@ -24,11 +30,11 @@ class WelcomeScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Color(0xD9FFFFFF),
                     borderRadius: BorderRadius.circular(50),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.12),
+                        color: Color(0x1F000000),
                         blurRadius: 14,
                         offset: const Offset(0, 6),
                       ),

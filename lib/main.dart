@@ -21,7 +21,7 @@ void main() async {
   try {
     await NotificationService().initializeNotifications();
   } catch (e) {
-    print('Warning: Failed to initialize notifications: $e');
+    debugPrint('Warning: Failed to initialize notifications: $e');
     // Continue app even if notifications fail
   }
 
@@ -36,6 +36,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Bloom Tracker',
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        if (child == null) return const SizedBox.shrink();
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: child,
+          ),
+        );
+      },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.pinkAccent),
         useMaterial3: true,

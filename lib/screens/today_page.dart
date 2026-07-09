@@ -220,7 +220,11 @@ class _TodayPageState extends State<TodayPage> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 960),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width < 720
+                  ? MediaQuery.of(context).size.width
+                  : 720,
+            ),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth > 720;
